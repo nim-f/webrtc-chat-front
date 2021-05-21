@@ -8,7 +8,7 @@ import { JoinButton } from "src/components/JoinButton";
 export const Home = () => {
     return (
         <div>
-            {/* <JoinButton /> */}
+            <JoinButton />
             <VideoPlayer />
             <Options>
                 <Notifications />

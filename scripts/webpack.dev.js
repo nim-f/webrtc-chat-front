@@ -7,6 +7,7 @@ module.exports = merge(common, {
     devServer: {
         contentBase: "./build",
         writeToDisk: true,
+        historyApiFallback: true,
     },
     module: {
         rules: [

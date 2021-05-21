@@ -8,22 +8,12 @@ import React, {
 } from "react";
 import { io } from "socket.io-client";
 import Peer, { Instance } from "simple-peer";
-import { useHistory } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import useDynamicRefs from "use-dynamic-refs";
-import { addPeerAction } from "./actions/peerActions";
+import { addPeerAction, deletePeerAction } from "./actions/peerActions";
 
 const SocketContext = createContext<null | any>(null);
 const socket = io("http://localhost:5000");
-/**
- * RTCPeerConnection configuration
- */
-
-type TCall = {
-    isReceivedCall: Boolean;
-    from: any;
-    name: string;
-    signal: any;
-};
 
 export type TPeer = {
     socket_id: string;
@@ -31,10 +21,15 @@ export type TPeer = {
     data?: any;
     stream: MediaStream;
 };
-export type TAction = {
-    type: "ADD_PEER";
-    payload: { socket_id: string; peer: Instance };
-};
+export type TAction =
+    | {
+          type: "ADD_PEER";
+          payload: { socket_id: string; peer: Instance };
+      }
+    | {
+          type: "DELETE_PEER";
+          payload: { socket_id: string };
+      };
 
 type TState = Record<string, { peer: Instance }>;
 
@@ -47,9 +42,9 @@ const reducer = (state: TState, action: TAction): TState => {
                 ...state,
                 [action.payload.socket_id]: { peer: action.payload.peer },
             };
-        // TODO: delete peer funcitonal
-        // case "DELETE_PEER":
-        //     return { ...state };
+        case "DELETE_PEER":
+            const { [action.payload.socket_id]: deleted, ...rest } = state;
+            return { ...rest };
         default:
             throw new Error();
     }
@@ -58,15 +53,17 @@ const reducer = (state: TState, action: TAction): TState => {
 const ContextProvider: FC = ({ children }) => {
     const [stream, setStream] = useState<MediaStream | undefined>();
     const [name, setName] = useState<string>("");
+    const [me, setMe] = useState<string>("");
     const [getRef, setRef] = useDynamicRefs();
     const history = useHistory();
     const myVideo = useRef<HTMLVideoElement>(null);
+    const params = useParams();
 
     const [peers, dispatch] = useReducer(reducer, {});
 
     useEffect(() => {
         socket.on("signal", (data) => {
-            peers[data.socket_id].peer.signal(data.signal);
+            peers[data.socket_id]?.peer.signal(data.signal);
         });
         return () => {
             socket.off("signal");
@@ -74,6 +71,10 @@ const ContextProvider: FC = ({ children }) => {
     }, [peers]);
 
     useEffect(() => {
+        socket.on("me", (socket_id) => {
+            setMe(socket_id);
+        });
+
         socket.on("initReceive", (socket_id) => {
             console.log("INIT RECEIVE " + socket_id);
             addPeer(socket_id, false);
@@ -85,7 +86,7 @@ const ContextProvider: FC = ({ children }) => {
             addPeer(socket_id, true);
         });
 
-        socket.on("removePeer", (socket_id) => {
+        socket.on("disconnected", (socket_id) => {
             console.log("removing peer " + socket_id);
             removePeer(socket_id);
         });
@@ -140,7 +141,9 @@ const ContextProvider: FC = ({ children }) => {
         dispatch(addPeerAction(socket_id, newPeer));
     };
 
-    const removePeer = (socket_id: string) => {};
+    const removePeer = (socket_id: string) => {
+        dispatch(deletePeerAction(socket_id));
+    };
 
     const shareScreen = () => {
         // @ts-ignore
@@ -155,8 +158,21 @@ const ContextProvider: FC = ({ children }) => {
     const joinRoom = async () => {
         await fetch("http://localhost:5000/join").then((res) => {
             res.json().then((r) => {
-                history.push(`/rrom/${r.link}`);
+                history.push(`/room/${r.link}`);
             });
+        });
+    };
+
+    const addUserToRoom = (roomID: string) => {
+        socket.emit("join-room", {
+            roomID,
+        });
+    };
+
+    const leaveRoom = (roomID: string) => {
+        socket.emit("disconnect", {
+            userID: me,
+            roomID,
         });
     };
 
@@ -171,6 +187,8 @@ const ContextProvider: FC = ({ children }) => {
                 joinRoom,
                 peers,
                 setRef,
+                addUserToRoom,
+                leaveRoom,
             }}
         >
             {children}

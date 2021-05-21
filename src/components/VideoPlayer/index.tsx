@@ -27,12 +27,8 @@ const useStyles = makeStyles((theme) => ({
 export const VideoPlayer: FC = () => {
     const {
         name,
-        callAccepted,
         myVideo,
-        userVideo,
-        callEnded,
         stream,
-        call,
         peers,
         setRef,
     } = useContext(SocketContext);

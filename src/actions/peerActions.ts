@@ -9,3 +9,8 @@ export const addPeerAction = (socket_id: string, peer: Instance): TAction => ({
     type: ADD_PEER,
     payload: { socket_id, peer },
 });
+
+export const deletePeerAction = (socket_id: string): TAction => ({
+    type: DELETE_PEER,
+    payload: { socket_id },
+});
