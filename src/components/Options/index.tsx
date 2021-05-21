@@ -49,16 +49,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 export const Options: FC = ({ children }) => {
-    const {
-        me,
-        callAccepted,
-        name,
-        setName,
-        callEnded,
-        leaveCall,
-        callUser,
-        shareScreen,
-    } = useContext(SocketContext);
+    const { me, name, setName, shareScreen } = useContext(SocketContext);
 
     const [idToCall, setIdToCal] = useState("");
     const classes = useStyles();
@@ -98,46 +89,30 @@ export const Options: FC = ({ children }) => {
                                 value={idToCall}
                                 onChange={(e) => setIdToCal(e.target.value)}
                             />
-                            {console.log({ callAccepted, callEnded })}
-                            {callAccepted && !callEnded ? (
-                                <>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        startIcon={
-                                            <ScreenShare fontSize="large" />
-                                        }
-                                        fullWidth
-                                        onClick={shareScreen}
-                                        className={classes.margin}
-                                    >
-                                        Share screen
-                                    </Button>
-                                    <Button
-                                        variant="contained"
-                                        color="secondary"
-                                        startIcon={
-                                            <PhoneDisabled fontSize="large" />
-                                        }
-                                        fullWidth
-                                        onClick={leaveCall}
-                                        className={classes.margin}
-                                    >
-                                        Hang up
-                                    </Button>
-                                </>
-                            ) : (
+                            <>
                                 <Button
                                     variant="contained"
                                     color="primary"
-                                    startIcon={<Phone fontSize="large" />}
+                                    startIcon={<ScreenShare fontSize="large" />}
                                     fullWidth
-                                    onClick={() => callUser(idToCall)}
+                                    onClick={shareScreen}
                                     className={classes.margin}
                                 >
-                                    Call
+                                    Share screen
                                 </Button>
-                            )}
+                                <Button
+                                    variant="contained"
+                                    color="secondary"
+                                    startIcon={
+                                        <PhoneDisabled fontSize="large" />
+                                    }
+                                    fullWidth
+                                    // onClick={leaveCall}
+                                    className={classes.margin}
+                                >
+                                    Hang up
+                                </Button>
+                            </>
                         </Grid>
                     </Grid>
                 </form>

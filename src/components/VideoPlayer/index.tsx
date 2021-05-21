@@ -1,7 +1,8 @@
 import React, { FC, useContext } from "react";
 import { Grid, Typography, Paper } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { SocketContext } from "../../SocketContext";
+import { SocketContext, TPeer } from "../../SocketContext";
+import { PermMediaRounded } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
     video: {
@@ -24,10 +25,18 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export const VideoPlayer: FC = () => {
-    const { name, callAccepted, myVideo, userVideo, callEnded, stream, call } =
-        useContext(SocketContext);
+    const {
+        name,
+        callAccepted,
+        myVideo,
+        userVideo,
+        callEnded,
+        stream,
+        call,
+        peers,
+        setRef,
+    } = useContext(SocketContext);
     const classes = useStyles();
-    console.log({ userVideo });
 
     return (
         <Grid container className={classes.gridContainer}>
@@ -37,30 +46,27 @@ export const VideoPlayer: FC = () => {
                         <Typography variant="h5">{name || "Name"}</Typography>
                         <video
                             playsInline
-                            muted
                             ref={myVideo}
                             autoPlay
                             className={classes.video}
+                            muted
                         />
                     </Grid>
                 </Paper>
             )}
-
-            {callAccepted && !callEnded && (
+            {Object.keys(peers).map((peer: string) => (
                 <Paper className={classes.paper}>
                     <Grid item xs={12} md={6}>
-                        <Typography variant="h5">
-                            {call?.name || "Name"}
-                        </Typography>
+                        <Typography variant="h5">{peer || "Name"}</Typography>
                         <video
                             playsInline
-                            ref={userVideo}
+                            ref={setRef(peer)}
                             autoPlay
                             className={classes.video}
                         />
                     </Grid>
                 </Paper>
-            )}
+            ))}
         </Grid>
     );
 };

@@ -3,7 +3,7 @@ import { Button } from "@material-ui/core";
 import { SocketContext } from "../../SocketContext";
 
 export const Notifications: FC = () => {
-    const { answerCall, call, callAccepted } = useContext(SocketContext);
+    const { call, callAccepted } = useContext(SocketContext);
     return (
         <>
             {call?.isReceivedCall && !callAccepted && (
@@ -13,7 +13,7 @@ export const Notifications: FC = () => {
                     <Button
                         variant="contained"
                         color="primary"
-                        onClick={answerCall}
+                        // onClick={answerCall}
                     >
                         Answer
                     </Button>

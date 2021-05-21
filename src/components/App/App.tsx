@@ -1,10 +1,9 @@
 import React from "react";
 import { Typography, AppBar } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-
-import { VideoPlayer } from "src/components/VideoPlayer";
-import { Notifications } from "src/components/Notifications";
-import { Options } from "src/components/Options";
+import { Switch, Route, Link } from "react-router-dom";
+import { Home } from "src/pages/Home";
+import { Room } from "src/pages/Room";
 
 const useStyles = makeStyles((theme) => ({
     appBar: {
@@ -45,10 +44,11 @@ export const App = () => {
                     Video chat
                 </Typography>
             </AppBar>
-            <VideoPlayer />
-            <Options>
-                <Notifications />
-            </Options>
+
+            <Switch>
+                <Route path="/" exact component={Home} />
+                <Route path="/room/:id" exact component={Room} />
+            </Switch>
         </div>
     );
 };
