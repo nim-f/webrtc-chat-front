@@ -15,7 +15,7 @@ import {
     PhoneDisabled,
     ScreenShare,
 } from "@material-ui/icons";
-import { SocketContext } from "../../SocketContext";
+import { SocketContext } from "../../context/SocketContext";
 import { Notifications } from "../Notifications";
 
 const useStyles = makeStyles((theme) => ({

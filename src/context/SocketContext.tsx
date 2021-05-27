@@ -10,7 +10,13 @@ import { io } from "socket.io-client";
 import Peer, { Instance } from "simple-peer";
 import { useHistory, useParams } from "react-router-dom";
 import useDynamicRefs from "use-dynamic-refs";
-import { addPeerAction, deletePeerAction } from "./actions/peerActions";
+import {
+    addPeerAction,
+    deletePeerAction,
+    ADD_PEER,
+    DELETE_PEER,
+} from "../actions/peerActions";
+import { reducer } from "./reducer";
 
 const SocketContext = createContext<null | any>(null);
 const socket = io("http://localhost:5000");
@@ -21,34 +27,6 @@ export type TPeer = {
     data?: any;
     stream: MediaStream;
 };
-export type TAction =
-    | {
-          type: "ADD_PEER";
-          payload: { socket_id: string; peer: Instance };
-      }
-    | {
-          type: "DELETE_PEER";
-          payload: { socket_id: string };
-      };
-
-type TState = Record<string, { peer: Instance }>;
-
-type TReducer<S, A> = (prevState: S, action: A) => S;
-
-const reducer = (state: TState, action: TAction): TState => {
-    switch (action.type) {
-        case "ADD_PEER":
-            return {
-                ...state,
-                [action.payload.socket_id]: { peer: action.payload.peer },
-            };
-        case "DELETE_PEER":
-            const { [action.payload.socket_id]: deleted, ...rest } = state;
-            return { ...rest };
-        default:
-            throw new Error();
-    }
-};
 
 const ContextProvider: FC = ({ children }) => {
     const [stream, setStream] = useState<MediaStream | undefined>();
@@ -57,8 +35,6 @@ const ContextProvider: FC = ({ children }) => {
     const [getRef, setRef] = useDynamicRefs();
     const history = useHistory();
     const myVideo = useRef<HTMLVideoElement>(null);
-    const params = useParams();
-
     const [peers, dispatch] = useReducer(reducer, {});
 
     useEffect(() => {
@@ -92,7 +68,6 @@ const ContextProvider: FC = ({ children }) => {
         });
 
         socket.on("disconnect", () => {
-            console.log("GOT DISCONNECTED");
             for (let socket_id in peers) {
                 removePeer(socket_id);
             }
@@ -135,7 +110,7 @@ const ContextProvider: FC = ({ children }) => {
             const video = getRef(
                 socket_id
             ) as React.RefObject<HTMLVideoElement>;
-            if (video && video.current) video.current.srcObject = stream;
+            if (video.current) video.current.srcObject = stream;
         });
 
         dispatch(addPeerAction(socket_id, newPeer));
@@ -146,8 +121,8 @@ const ContextProvider: FC = ({ children }) => {
     };
 
     const shareScreen = () => {
-        // @ts-ignore
-        navigator.mediaDevices.getDisplayMedia({}).then((currentStream) => {
+        const mediaDevices = navigator.mediaDevices as any;
+        mediaDevices.getDisplayMedia({}).then((currentStream: MediaStream) => {
             setStream(currentStream);
             if (myVideo.current) {
                 myVideo.current.srcObject = currentStream;
@@ -182,10 +157,10 @@ const ContextProvider: FC = ({ children }) => {
                 myVideo,
                 stream,
                 name,
+                peers,
                 setName,
                 shareScreen,
                 joinRoom,
-                peers,
                 setRef,
                 addUserToRoom,
                 leaveRoom,

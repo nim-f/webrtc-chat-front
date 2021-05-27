@@ -1,7 +1,7 @@
 import React, { FC, useContext } from "react";
 import { Grid, Typography, Paper } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { SocketContext, TPeer } from "../../SocketContext";
+import { SocketContext, TPeer } from "../../context/SocketContext";
 import { PermMediaRounded } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({

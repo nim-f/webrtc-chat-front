@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { Button } from "@material-ui/core";
-import { SocketContext } from "../../SocketContext";
+import { SocketContext } from "src/context/SocketContext";
 
 export const JoinButton = () => {
     const { joinRoom } = useContext(SocketContext);

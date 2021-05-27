@@ -4,6 +4,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Switch, Route, Link } from "react-router-dom";
 import { Home } from "src/pages/Home";
 import { Room } from "src/pages/Room";
+import { createMemoryHistory } from "history";
 
 const useStyles = makeStyles((theme) => ({
     appBar: {
