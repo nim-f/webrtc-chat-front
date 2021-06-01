@@ -4,19 +4,11 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Switch, Route, Link } from "react-router-dom";
 import { Home } from "src/pages/Home";
 import { Room } from "src/pages/Room";
-import { createMemoryHistory } from "history";
 
 const useStyles = makeStyles((theme) => ({
     appBar: {
-        borderRadius: 15,
-        margin: "30px 100px",
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        width: "600px",
-        border: "2px solid black",
-
+        padding: "10px",
+        marginBottom: "20px",
         [theme.breakpoints.down("xs")]: {
             width: "90%",
         },
@@ -30,6 +22,10 @@ const useStyles = makeStyles((theme) => ({
         alignItems: "center",
         width: "100%",
     },
+    title: {
+        color: theme.palette.primary.main,
+        textDecoration: "none",
+    },
 }));
 
 export const App = () => {
@@ -41,8 +37,10 @@ export const App = () => {
                 color="inherit"
                 className={classes.appBar}
             >
-                <Typography variant="h2" align="center">
-                    Video chat
+                <Typography variant="h5" align="left">
+                    <Link to={"/"} className={classes.title}>
+                        Video chat
+                    </Link>
                 </Typography>
             </AppBar>
 

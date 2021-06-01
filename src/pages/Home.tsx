@@ -1,18 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
 
-import { VideoPlayer } from "src/components/VideoPlayer";
-import { Notifications } from "src/components/Notifications";
-import { Options } from "src/components/Options";
 import { JoinButton } from "src/components/JoinButton";
+import { SocketContext } from "src/context/SocketContext";
 
 export const Home = () => {
+    const { joinRoom } = useContext(SocketContext);
+
     return (
         <div>
-            <JoinButton />
-            <VideoPlayer />
-            <Options>
-                <Notifications />
-            </Options>
+            <JoinButton onClick={joinRoom} />
         </div>
     );
 };

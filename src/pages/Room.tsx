@@ -1,22 +1,55 @@
 import React, { useEffect, useContext } from "react";
-import { Typography } from "@material-ui/core";
+import { Grid, makeStyles, Typography, Dialog } from "@material-ui/core";
 import { useParams } from "react-router-dom";
 import { VideoPlayer } from "../components/VideoPlayer";
 import { SocketContext, TPeer } from "../context/SocketContext";
+import { JoinButton } from "src/components/JoinButton";
+import { Notifications } from "src/components/Notifications";
+import { Options } from "src/components/Options";
 
+const useStyles = makeStyles((theme) => ({
+    gridContainer: {
+        justifyContent: "center",
+        [theme.breakpoints.down("xs")]: {
+            flexDirection: "column",
+        },
+    },
+}));
 export const Room = () => {
+    const classes = useStyles();
     const params = useParams<{ id: string }>();
-    const { addUserToRoom, leaveRoom } = useContext(SocketContext);
+    const { addUserToRoom, leaveRoom, name, myVideo, stream, peers, setRef } =
+        useContext(SocketContext);
+    const [open, setOpen] = React.useState(!name);
+
     useEffect(() => {
-        addUserToRoom(params.id);
+        if (name) addUserToRoom(params.id);
         return () => {
             leaveRoom(params.id);
         };
     }, []);
+
+    const closeModal = () => {
+        if (name) {
+            addUserToRoom(params.id);
+            setOpen(false);
+        }
+    };
     return (
         <div>
+            <Dialog open={open}>
+                <JoinButton onClick={closeModal} />
+            </Dialog>
             <Typography>Room {params.id}</Typography>
-            <VideoPlayer />
+            <Grid container className={classes.gridContainer}>
+                {stream && <VideoPlayer name={name} ref={myVideo} />}
+                {Object.keys(peers).map((peer: string) => (
+                    <VideoPlayer name={peer} ref={setRef(peer)} />
+                ))}
+            </Grid>
+            <Options>
+                <Notifications />
+            </Options>
         </div>
     );
 };

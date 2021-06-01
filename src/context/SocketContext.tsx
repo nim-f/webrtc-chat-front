@@ -7,15 +7,10 @@ import React, {
     useReducer,
 } from "react";
 import { io } from "socket.io-client";
-import Peer, { Instance } from "simple-peer";
-import { useHistory, useParams } from "react-router-dom";
+import Peer from "simple-peer";
+import { useHistory } from "react-router-dom";
 import useDynamicRefs from "use-dynamic-refs";
-import {
-    addPeerAction,
-    deletePeerAction,
-    ADD_PEER,
-    DELETE_PEER,
-} from "../actions/peerActions";
+import { addPeerAction, deletePeerAction } from "../actions/peerActions";
 import { reducer } from "./reducer";
 
 const SocketContext = createContext<null | any>(null);
@@ -81,18 +76,6 @@ const ContextProvider: FC = ({ children }) => {
         };
     }, [stream]);
 
-    useEffect(() => {
-        navigator.mediaDevices
-            .getUserMedia({ video: true, audio: true })
-            .then((currentStream) => {
-                setStream(currentStream);
-
-                if (myVideo.current) {
-                    myVideo.current.srcObject = currentStream;
-                }
-            });
-    }, []);
-
     const addPeer = (socket_id: string, am_initiator: boolean | undefined) => {
         const newPeer = new Peer({
             initiator: am_initiator,
@@ -107,6 +90,7 @@ const ContextProvider: FC = ({ children }) => {
         });
 
         newPeer.on("stream", (stream) => {
+            console.log("peeer streeam");
             const video = getRef(
                 socket_id
             ) as React.RefObject<HTMLVideoElement>;
@@ -130,15 +114,31 @@ const ContextProvider: FC = ({ children }) => {
         });
     };
 
+    const startStream = () => {
+        navigator.mediaDevices
+            .getUserMedia({ video: true, audio: true })
+            .then((currentStream) => {
+                setStream(currentStream);
+
+                if (myVideo.current) {
+                    console.log({ currentStream });
+                    myVideo.current.srcObject = currentStream;
+                }
+            });
+    };
+
     const joinRoom = async () => {
         await fetch("http://localhost:5000/join").then((res) => {
             res.json().then((r) => {
                 history.push(`/room/${r.link}`);
+                startStream();
             });
         });
     };
 
     const addUserToRoom = (roomID: string) => {
+        startStream();
+
         socket.emit("join-room", {
             roomID,
         });
