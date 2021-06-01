@@ -76,6 +76,9 @@ const ContextProvider: FC = ({ children }) => {
         };
     }, [stream]);
 
+    useEffect(() => {
+        startStream();
+    }, []);
     const addPeer = (socket_id: string, am_initiator: boolean | undefined) => {
         const newPeer = new Peer({
             initiator: am_initiator,
