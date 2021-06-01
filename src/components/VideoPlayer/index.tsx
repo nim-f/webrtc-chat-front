@@ -21,22 +21,23 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export const VideoPlayer = forwardRef<HTMLVideoElement, { name: string }>(
-    ({ name }, ref) => {
-        const classes = useStyles();
-        return (
-            <Paper className={classes.paper}>
-                <Grid item xs={12} md={6}>
-                    <Typography variant="h5">{name || "Name"}</Typography>
-                    <video
-                        playsInline
-                        ref={ref}
-                        autoPlay
-                        className={classes.video}
-                        muted
-                    />
-                </Grid>
-            </Paper>
-        );
-    }
-);
+export const VideoPlayer: FC<{
+    name: string;
+    videoRef: LegacyRef<HTMLVideoElement>;
+}> = ({ name, videoRef }) => {
+    const classes = useStyles();
+    return (
+        <Paper className={classes.paper}>
+            <Grid item xs={12} md={6}>
+                <Typography variant="h5">{name || "Name"}</Typography>
+                <video
+                    playsInline
+                    ref={videoRef}
+                    autoPlay
+                    className={classes.video}
+                    muted
+                />
+            </Grid>
+        </Paper>
+    );
+};

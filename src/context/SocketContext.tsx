@@ -79,6 +79,7 @@ const ContextProvider: FC = ({ children }) => {
     useEffect(() => {
         startStream();
     }, []);
+
     const addPeer = (socket_id: string, am_initiator: boolean | undefined) => {
         const newPeer = new Peer({
             initiator: am_initiator,
@@ -134,13 +135,13 @@ const ContextProvider: FC = ({ children }) => {
         await fetch("http://localhost:5000/join").then((res) => {
             res.json().then((r) => {
                 history.push(`/room/${r.link}`);
-                startStream();
+                // startStream();
             });
         });
     };
 
     const addUserToRoom = (roomID: string) => {
-        startStream();
+        // startStream();
 
         socket.emit("join-room", {
             roomID,

@@ -20,10 +20,10 @@ export const Room = () => {
     const params = useParams<{ id: string }>();
     const { addUserToRoom, leaveRoom, name, myVideo, stream, peers, setRef } =
         useContext(SocketContext);
-    const [open, setOpen] = React.useState(!name);
+    const [open, setOpen] = React.useState(false);
 
     useEffect(() => {
-        if (name) addUserToRoom(params.id);
+        addUserToRoom(params.id);
         return () => {
             leaveRoom(params.id);
         };
@@ -42,9 +42,13 @@ export const Room = () => {
             </Dialog>
             <Typography>Room {params.id}</Typography>
             <Grid container className={classes.gridContainer}>
-                {stream && <VideoPlayer name={name} ref={myVideo} />}
+                {stream && <VideoPlayer name={name} videoRef={myVideo} />}
                 {Object.keys(peers).map((peer: string) => (
-                    <VideoPlayer name={peer} ref={setRef(peer)} />
+                    <VideoPlayer
+                        key={peer}
+                        name={peer}
+                        videoRef={setRef(peer)}
+                    />
                 ))}
             </Grid>
             <Options>
