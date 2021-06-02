@@ -7,102 +7,35 @@ import React, {
     useReducer,
 } from "react";
 import { io } from "socket.io-client";
-import Peer from "simple-peer";
+import Peer from "peerjs";
 import { useHistory } from "react-router-dom";
 import useDynamicRefs from "use-dynamic-refs";
-import { addPeerAction, deletePeerAction } from "../actions/peerActions";
+import { addPeerAction, deletePeerAction } from "src/actions/peerActions";
 import { reducer } from "./reducer";
 
 const SocketContext = createContext<null | any>(null);
 const socket = io("http://localhost:5000");
 
-export type TPeer = {
-    socket_id: string;
-    am_initiator: boolean;
-    data?: any;
-    stream: MediaStream;
-};
-
 const ContextProvider: FC = ({ children }) => {
     const [stream, setStream] = useState<MediaStream | undefined>();
     const [name, setName] = useState<string>("");
-    const [me, setMe] = useState<string>("");
+    const [me, setMe] = useState<Peer>();
     const [getRef, setRef] = useDynamicRefs();
     const history = useHistory();
     const myVideo = useRef<HTMLVideoElement>(null);
     const [peers, dispatch] = useReducer(reducer, {});
 
+    console.log({ peers });
+
     useEffect(() => {
-        socket.on("signal", (data) => {
-            peers[data.socket_id]?.peer.signal(data.signal);
+        socket.on("disconnected", (userId) => {
+            console.log(`user ${userId} disconnected`);
+            removePeer(userId);
         });
         return () => {
-            socket.off("signal");
+            socket.emit("disconnect");
         };
-    }, [peers]);
-
-    useEffect(() => {
-        socket.on("me", (socket_id) => {
-            setMe(socket_id);
-        });
-
-        socket.on("initReceive", (socket_id) => {
-            console.log("INIT RECEIVE " + socket_id);
-            addPeer(socket_id, false);
-            socket.emit("initSend", socket_id);
-        });
-
-        socket.on("initSend", (socket_id) => {
-            console.log("INIT SEND " + socket_id);
-            addPeer(socket_id, true);
-        });
-
-        socket.on("disconnected", (socket_id) => {
-            console.log("removing peer " + socket_id);
-            removePeer(socket_id);
-        });
-
-        socket.on("disconnect", () => {
-            for (let socket_id in peers) {
-                removePeer(socket_id);
-            }
-        });
-
-        return () => {
-            socket.off("initReceive");
-            socket.off("initSend");
-            socket.off("removePeer");
-            socket.off("disconnect");
-        };
-    }, [stream]);
-
-    useEffect(() => {
-        startStream();
     }, []);
-
-    const addPeer = (socket_id: string, am_initiator: boolean | undefined) => {
-        const newPeer = new Peer({
-            initiator: am_initiator,
-            stream: stream,
-        });
-
-        newPeer.on("signal", (data) => {
-            socket.emit("signal", {
-                signal: data,
-                socket_id: socket_id,
-            });
-        });
-
-        newPeer.on("stream", (stream) => {
-            console.log("peeer streeam");
-            const video = getRef(
-                socket_id
-            ) as React.RefObject<HTMLVideoElement>;
-            if (video.current) video.current.srcObject = stream;
-        });
-
-        dispatch(addPeerAction(socket_id, newPeer));
-    };
 
     const removePeer = (socket_id: string) => {
         dispatch(deletePeerAction(socket_id));
@@ -118,41 +51,55 @@ const ContextProvider: FC = ({ children }) => {
         });
     };
 
-    const startStream = () => {
+    const addUserToRoom = (roomID: string) => {
+        const myPeer = new Peer();
+        setMe(myPeer);
+
         navigator.mediaDevices
             .getUserMedia({ video: true, audio: true })
             .then((currentStream) => {
                 setStream(currentStream);
-
+                myPeer.on("open", (id) => {
+                    socket.emit("join-room", roomID, id); //emitting this to server to catch 'join-room'
+                });
                 if (myVideo.current) {
-                    console.log({ currentStream });
                     myVideo.current.srcObject = currentStream;
                 }
+
+                // answer to connected user and send him stream
+                myPeer.on("call", (call) => {
+                    call.answer(currentStream);
+                    call.on("stream", (userVideoStream) => {
+                        addVideoStream(call.peer, userVideoStream);
+                    });
+                });
+
+                // get stream when new user get connected
+                socket.on("user-connected", (userId) => {
+                    const call = myPeer.call(userId, currentStream);
+                    call.on("stream", (userVideoStream: MediaStream) => {
+                        addVideoStream(userId, userVideoStream);
+                    });
+                });
             });
+    };
+
+    const addVideoStream = (userId: string, stream: MediaStream) => {
+        dispatch(addPeerAction(userId, stream));
+        const video = getRef(userId) as React.RefObject<HTMLVideoElement>;
+        if (video.current) video.current.srcObject = stream;
     };
 
     const joinRoom = async () => {
         await fetch("http://localhost:5000/join").then((res) => {
             res.json().then((r) => {
                 history.push(`/room/${r.link}`);
-                // startStream();
             });
         });
     };
 
-    const addUserToRoom = (roomID: string) => {
-        // startStream();
-
-        socket.emit("join-room", {
-            roomID,
-        });
-    };
-
     const leaveRoom = (roomID: string) => {
-        socket.emit("disconnect", {
-            userID: me,
-            roomID,
-        });
+        socket.emit("disconnect");
     };
 
     return (
