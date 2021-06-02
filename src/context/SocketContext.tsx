@@ -20,12 +20,36 @@ const ContextProvider: FC = ({ children }) => {
     const [stream, setStream] = useState<MediaStream | undefined>();
     const [name, setName] = useState<string>("");
     const [me, setMe] = useState<Peer>();
+    const [myCall, setMyCall] = useState<any>(null);
     const [getRef, setRef] = useDynamicRefs();
     const history = useHistory();
     const myVideo = useRef<HTMLVideoElement>(null);
     const [peers, dispatch] = useReducer(reducer, {});
 
-    console.log({ peers });
+    useEffect(() => {
+        if (!stream) return;
+        if (!me) return;
+        if (myVideo.current) {
+            myVideo.current.srcObject = stream;
+        }
+
+        // answer to connected user and send him stream
+        me.on("call", (call) => {
+            call.answer(stream);
+
+            call.on("stream", (userVideoStream) => {
+                addVideoStream(call.peer, userVideoStream);
+            });
+        });
+
+        // get stream when new user get connected
+        socket.on("user-connected", (userId) => {
+            const call = me.call(userId, stream);
+            call.on("stream", (userVideoStream: MediaStream) => {
+                addVideoStream(userId, userVideoStream);
+            });
+        });
+    }, [stream, me]);
 
     useEffect(() => {
         socket.on("disconnected", (userId) => {
@@ -44,10 +68,18 @@ const ContextProvider: FC = ({ children }) => {
     const shareScreen = () => {
         const mediaDevices = navigator.mediaDevices as any;
         mediaDevices.getDisplayMedia({}).then((currentStream: MediaStream) => {
+            console.log({ me });
             setStream(currentStream);
+
             if (myVideo.current) {
                 myVideo.current.srcObject = currentStream;
             }
+
+            Object.keys(me?.connections).forEach((key: string) => {
+                me?.connections[key][0].peerConnection
+                    .getSenders()[1]
+                    .replaceTrack(currentStream.getTracks()[0]);
+            });
         });
     };
 
@@ -61,25 +93,6 @@ const ContextProvider: FC = ({ children }) => {
                 setStream(currentStream);
                 myPeer.on("open", (id) => {
                     socket.emit("join-room", roomID, id); //emitting this to server to catch 'join-room'
-                });
-                if (myVideo.current) {
-                    myVideo.current.srcObject = currentStream;
-                }
-
-                // answer to connected user and send him stream
-                myPeer.on("call", (call) => {
-                    call.answer(currentStream);
-                    call.on("stream", (userVideoStream) => {
-                        addVideoStream(call.peer, userVideoStream);
-                    });
-                });
-
-                // get stream when new user get connected
-                socket.on("user-connected", (userId) => {
-                    const call = myPeer.call(userId, currentStream);
-                    call.on("stream", (userVideoStream: MediaStream) => {
-                        addVideoStream(userId, userVideoStream);
-                    });
                 });
             });
     };

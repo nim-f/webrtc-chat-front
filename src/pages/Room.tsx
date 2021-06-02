@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
 export const Room = () => {
     const classes = useStyles();
     const params = useParams<{ id: string }>();
-    
+
     const { addUserToRoom, leaveRoom, name, myVideo, stream, peers, setRef } =
         useContext(SocketContext);
     const [open, setOpen] = React.useState(false);
