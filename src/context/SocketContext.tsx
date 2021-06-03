@@ -17,17 +17,33 @@ const SocketContext = createContext<null | any>(null);
 const socket = io("http://localhost:5000");
 
 const ContextProvider: FC = ({ children }) => {
-    const [stream, setStream] = useState<MediaStream | undefined>();
-    const [myName, setMyName] = useState<string>("");
-    const [me, setMe] = useState<Peer>();
-    const [getRef, setRef] = useDynamicRefs();
     const history = useHistory();
+
+    const [stream, setStream] = useState<MediaStream | undefined>();
+
+    const [me, setMe] = useState<Peer>();
+    const [myName, setMyName] = useState<string>("");
+    const [isScreenSharing, setScreenSharing] = useState<boolean>(false);
+
+    const [getRef, setRef] = useDynamicRefs();
     const myVideo = useRef<HTMLVideoElement>(null);
+
     const [peers, dispatch] = useReducer(reducer, {});
+
+    useEffect(() => {
+        socket.on("disconnected", (userID) => {
+            console.log(`user ${userID} disconnected`);
+            removePeer(userID);
+        });
+        return () => {
+            leaveRoom();
+        };
+    }, []);
 
     useEffect(() => {
         if (!stream) return;
         if (!me) return;
+
         if (myVideo.current) {
             myVideo.current.srcObject = stream;
         }
@@ -35,7 +51,6 @@ const ContextProvider: FC = ({ children }) => {
         // answer to connected user and send him stream
         me.on("call", (call) => {
             call.answer(stream);
-
             call.on("stream", (userVideoStream) => {
                 addVideoStream(call.peer, userVideoStream, call.metadata.name);
             });
@@ -52,35 +67,46 @@ const ContextProvider: FC = ({ children }) => {
         });
     }, [stream, me]);
 
-    useEffect(() => {
-        socket.on("disconnected", (userID) => {
-            console.log(`user ${userID} disconnected`);
-            removePeer(userID);
-        });
-        return () => {
-            leaveRoom();
-        };
-    }, []);
-
     const removePeer = (userID: string) => {
         dispatch(deletePeerAction(userID));
     };
 
-    const shareScreen = () => {
-        const mediaDevices = navigator.mediaDevices as any;
-        mediaDevices.getDisplayMedia({}).then((currentStream: MediaStream) => {
-            console.log({ me });
-            setStream(currentStream);
-
-            if (myVideo.current) {
-                myVideo.current.srcObject = currentStream;
+    const switchScreen = () => {
+        try {
+            if (isScreenSharing) {
+                navigator.mediaDevices
+                    .getUserMedia({ video: true, audio: true })
+                    .then(setMyStream)
+                    .catch((err) => console.error(err));
+            } else {
+                const mediaDevices = navigator.mediaDevices as any;
+                mediaDevices
+                    .getDisplayMedia({})
+                    .then(setMyStream)
+                    .catch((err: any) => console.error(err));
             }
 
-            Object.keys(me?.connections).forEach((key: string) => {
-                me?.connections[key][0].peerConnection
-                    .getSenders()[1]
-                    .replaceTrack(currentStream.getTracks()[0]);
-            });
+            setScreenSharing(!isScreenSharing);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const setMyStream = (currentStream: MediaStream) => {
+        setStream(currentStream);
+
+        if (myVideo.current) {
+            myVideo.current.srcObject = currentStream;
+        }
+
+        Object.keys(me?.connections).forEach((key: string) => {
+            const videoTrack = currentStream
+                .getTracks()
+                .find((track) => track.kind === "video");
+            me?.connections[key][0].peerConnection
+                .getSenders()[1]
+                .replaceTrack(videoTrack)
+                .catch((err: any) => console.error(err));
         });
     };
 
@@ -108,14 +134,6 @@ const ContextProvider: FC = ({ children }) => {
         if (video.current) video.current.srcObject = stream;
     };
 
-    const joinRoom = async () => {
-        await fetch("http://localhost:5000/join").then((res) => {
-            res.json().then((r) => {
-                history.push(`/room/${r.link}`);
-            });
-        });
-    };
-
     const leaveRoom = () => {
         socket.emit("user-disconnect");
         stream?.getTracks().forEach((track) => track.stop());
@@ -128,11 +146,11 @@ const ContextProvider: FC = ({ children }) => {
             value={{
                 myVideo,
                 stream,
-                name: myName,
+                myName,
+                isScreenSharing,
                 peers,
                 setName: setMyName,
-                shareScreen,
-                joinRoom,
+                switchScreen,
                 setRef,
                 addUserToRoom,
                 leaveRoom,

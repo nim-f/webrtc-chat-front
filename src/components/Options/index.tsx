@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 export const Options: FC = ({ children }) => {
-    const { leaveRoom, shareScreen } = useContext(SocketContext);
+    const { leaveRoom, switchScreen } = useContext(SocketContext);
     const classes = useStyles();
     return (
         <Container className={classes.container}>
@@ -61,7 +61,7 @@ export const Options: FC = ({ children }) => {
                                     color="primary"
                                     startIcon={<ScreenShare fontSize="large" />}
                                     fullWidth
-                                    onClick={shareScreen}
+                                    onClick={switchScreen}
                                     className={classes.margin}
                                 >
                                     Share screen
