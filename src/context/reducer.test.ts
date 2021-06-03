@@ -8,7 +8,13 @@ describe("test reducer", () => {
     it("should add peer", () => {
         const stream = {} as MediaStream;
         expect(
-            reducer({}, { type: ADD_PEER, payload: { stream, socket_id: "1" } })
+            reducer(
+                {},
+                {
+                    type: ADD_PEER,
+                    payload: { stream, userID: "1", name: "Ann" },
+                }
+            )
         ).toEqual({
             "1": { stream: stream },
         });
@@ -18,9 +24,9 @@ describe("test reducer", () => {
         expect(
             reducer(
                 {
-                    "1": { stream },
+                    "1": { stream, name: "Ann" },
                 },
-                { type: DELETE_PEER, payload: { socket_id: "1" } }
+                { type: DELETE_PEER, payload: { userID: "1" } }
             )
         ).toEqual({});
     });

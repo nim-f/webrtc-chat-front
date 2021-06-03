@@ -4,22 +4,23 @@ export const ADD_PEER = "ADD_PEER" as const;
 export type TAction =
     | {
           type: typeof ADD_PEER;
-          payload: { socket_id: string; stream: MediaStream };
+          payload: { userID: string; stream: MediaStream; name: string };
       }
     | {
           type: typeof DELETE_PEER;
-          payload: { socket_id: string };
+          payload: { userID: string };
       };
 
 export const addPeerAction = (
-    socket_id: string,
-    stream: MediaStream
+    userID: string,
+    stream: MediaStream,
+    name: string
 ): TAction => ({
     type: ADD_PEER,
-    payload: { socket_id, stream },
+    payload: { userID, stream, name },
 });
 
-export const deletePeerAction = (socket_id: string): TAction => ({
+export const deletePeerAction = (userID: string): TAction => ({
     type: DELETE_PEER,
-    payload: { socket_id },
+    payload: { userID },
 });

@@ -1,6 +1,6 @@
 import { ADD_PEER, DELETE_PEER, TAction } from "../actions/peerActions";
 
-type TState = Record<string, { stream: MediaStream }>;
+type TState = Record<string, { stream: MediaStream; name: string }>;
 
 export const initialState = {};
 
@@ -12,10 +12,13 @@ export const reducer = (
         case ADD_PEER:
             return {
                 ...state,
-                [action.payload.socket_id]: { stream: action.payload.stream },
+                [action.payload.userID]: {
+                    stream: action.payload.stream,
+                    name: action.payload.name,
+                },
             };
         case DELETE_PEER:
-            const { [action.payload.socket_id]: deleted, ...rest } = state;
+            const { [action.payload.userID]: deleted, ...rest } = state;
             return { ...rest };
         default:
             return { ...state };

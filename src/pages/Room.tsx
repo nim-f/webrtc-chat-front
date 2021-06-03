@@ -21,12 +21,12 @@ export const Room = () => {
 
     const { addUserToRoom, leaveRoom, name, myVideo, stream, peers, setRef } =
         useContext(SocketContext);
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = React.useState(!name);
 
     useEffect(() => {
-        addUserToRoom(params.id);
+        if (name) addUserToRoom(params.id);
         return () => {
-            leaveRoom(params.id);
+            leaveRoom();
         };
     }, []);
 
@@ -47,7 +47,7 @@ export const Room = () => {
                 {Object.keys(peers).map((peer: string) => (
                     <VideoPlayer
                         key={peer}
-                        name={peer}
+                        name={peers[peer].name}
                         videoRef={setRef(peer)}
                     />
                 ))}

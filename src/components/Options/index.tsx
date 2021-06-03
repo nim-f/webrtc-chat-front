@@ -8,15 +8,13 @@ import {
     Paper,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { CopyToClipboard } from "react-copy-to-clipboard";
 import {
     Assignment,
     Phone,
     PhoneDisabled,
     ScreenShare,
 } from "@material-ui/icons";
-import { SocketContext } from "../../context/SocketContext";
-import { Notifications } from "../Notifications";
+import { SocketContext } from "src/context/SocketContext";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -49,9 +47,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 export const Options: FC = ({ children }) => {
-    const { me, name, setName, shareScreen } = useContext(SocketContext);
-
-    const [idToCall, setIdToCal] = useState("");
+    const { leaveRoom, shareScreen } = useContext(SocketContext);
     const classes = useStyles();
     return (
         <Container className={classes.container}>
@@ -59,36 +55,6 @@ export const Options: FC = ({ children }) => {
                 <form className={classes.root} noValidate autoComplete="off">
                     <Grid container className={classes.gridContainer}>
                         <Grid item xs={12} md={6} className={classes.padding}>
-                            <Typography gutterBottom variant="h6">
-                                Account info
-                            </Typography>
-                            <TextField
-                                label={"name"}
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                            />
-                            <CopyToClipboard text={me}>
-                                <Button
-                                    className={classes.margin}
-                                    variant="contained"
-                                    color="primary"
-                                    fullWidth
-                                    startIcon={<Assignment fontSize="large" />}
-                                >
-                                    Copy your id
-                                </Button>
-                            </CopyToClipboard>
-                        </Grid>
-
-                        <Grid item xs={12} md={6} className={classes.padding}>
-                            <Typography gutterBottom variant="h6">
-                                Make a call
-                            </Typography>
-                            <TextField
-                                label={"Id to call"}
-                                value={idToCall}
-                                onChange={(e) => setIdToCal(e.target.value)}
-                            />
                             <>
                                 <Button
                                     variant="contained"
@@ -107,7 +73,7 @@ export const Options: FC = ({ children }) => {
                                         <PhoneDisabled fontSize="large" />
                                     }
                                     fullWidth
-                                    // onClick={leaveCall}
+                                    onClick={leaveRoom}
                                     className={classes.margin}
                                 >
                                     Hang up
