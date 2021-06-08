@@ -1,5 +1,6 @@
 import React, { useEffect, useContext } from "react";
-import { Grid, makeStyles, Typography, Dialog } from "@material-ui/core";
+import { Grid, Typography, Dialog } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
 import { useParams } from "react-router-dom";
 import { VideoPlayer } from "src/components/VideoPlayer";
 import { SocketContext } from "src/context/SocketContext";
@@ -44,13 +45,20 @@ export const Room = () => {
 
             <Typography>Room {params.id}</Typography>
             <Grid container className={classes.gridContainer}>
-                {stream && <VideoPlayer name={myName} videoRef={myVideo} />}
+                {stream && (
+                    <VideoPlayer
+                        name={myName}
+                        videoRef={myVideo}
+                        isMuted={true}
+                    />
+                )}
 
                 {Object.keys(peers).map((peer: string) => (
                     <VideoPlayer
                         key={peer}
                         name={peers[peer].name}
                         videoRef={setRef(peer)}
+                        isMuted={false}
                     />
                 ))}
             </Grid>

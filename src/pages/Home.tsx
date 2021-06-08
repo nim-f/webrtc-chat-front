@@ -7,11 +7,13 @@ export const Home = () => {
     const history = useHistory();
 
     const joinRoom = async () => {
-        await fetch("http://localhost:5000/join").then((res) => {
-            res.json().then((r) => {
-                history.push(`/room/${r.link}`);
-            });
-        });
+        await fetch("https://webrtc-chat-app-ann.herokuapp.com/join").then(
+            (res) => {
+                res.json().then((r) => {
+                    history.push(`/room/${r.link}`);
+                });
+            }
+        );
     };
     return (
         <div>

@@ -24,7 +24,8 @@ const useStyles = makeStyles((theme) => ({
 export const VideoPlayer: FC<{
     name: string;
     videoRef: LegacyRef<HTMLVideoElement>;
-}> = ({ name, videoRef }) => {
+    isMuted: boolean;
+}> = ({ name, videoRef, isMuted }) => {
     const classes = useStyles();
     return (
         <Paper className={classes.paper}>
@@ -35,7 +36,7 @@ export const VideoPlayer: FC<{
                     ref={videoRef}
                     autoPlay
                     className={classes.video}
-                    muted
+                    muted={isMuted}
                 />
             </Grid>
         </Paper>

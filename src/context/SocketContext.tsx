@@ -14,7 +14,7 @@ import { addPeerAction, deletePeerAction } from "src/actions/peerActions";
 import { reducer } from "./reducer";
 
 const SocketContext = createContext<null | any>(null);
-const socket = io("http://localhost:5000");
+const socket = io("https://webrtc-chat-app-ann.herokuapp.com/");
 
 const ContextProvider: FC = ({ children }) => {
     const history = useHistory();
